@@ -9,16 +9,43 @@
 			<th>Level</th>
 			<th>Health</th>
 			<th>Damage?</th>
+			<% if @trainer == current_trainer %>
+				<th>Heal?</th>
+			<% end %>
 		</tr>
 	</thead>
 	<tbody>
 		<% @pokemons.each do |pokemon| %>
-			<tr>
-				<td><%= pokemon.name %></td>
-				<td><%= pokemon.level %></td>
-				<td><%= pokemon.health %></td>
-				<td> <%= button_to "Damage This Pokemon!", damage_path(id: pokemon), :class => "button tiny", :method => :patch %></td>
-			</tr>
+			<% if @trainer == current_trainer %>
+				<tr>
+					<td><%= pokemon.name %></td>
+					<td><%= pokemon.level %></td>
+					<td><%= pokemon.health %></td>
+					<% @pokemon_options = Pokemon.where(["trainer_id == ?", current_trainer.id]).map{|p| [p.name]} %>
+					<td> <%= form_tag("/damage", method: "patch") do %>
+						  <%= label_tag(:q, "Battle with:") %>
+						  <%= hidden_field_tag(:id, pokemon.id) %>
+						  <%= select_tag(:name, options_for_select(@pokemon_options)) %> 
+						  <%= submit_tag(["Damage ", pokemon.name, "!"].join(''), :class => "button tiny") %>
+						<% end %> </td>
+					<td> <%= button_to "Heal This Pokemon!", heal_path(id: pokemon), :class => "button tiny", :method => :patch %></td>
+				</tr>
+			<% else %>
+				<% if pokemon.health > 0 %>
+					<tr>
+						<td><%= pokemon.name %></td>
+						<td><%= pokemon.level %></td>
+						<td><%= pokemon.health %></td>
+						<% @pokemon_options = Pokemon.where(["trainer_id == ?", current_trainer.id]).map{|p| [p.name]} %>
+						<td> <%= form_tag("/damage", method: "patch") do %>
+						  <%= label_tag(:q, "Battle with:") %>
+						  <%= hidden_field_tag(:id, pokemon.id) %>
+						  <%= select_tag(:name, options_for_select(@pokemon_options)) %> 
+						  <%= submit_tag(["Damage ", pokemon.name, "!"].join(''), :class => "button tiny") %>
+						<% end %> </td>
+					</tr>
+				<% end %>
+			<% end %>
 		<% end %>
 	</tbody>
 </table>
